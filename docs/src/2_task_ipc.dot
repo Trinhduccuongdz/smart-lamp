@@ -1,0 +1,63 @@
+// Sơ đồ luồng dữ liệu giữa ISR - Task - đối tượng FreeRTOS
+digraph ipc {
+  graph [rankdir=TB, fontname="DejaVu Sans", fontsize=20, labelloc=t, newrank=true,
+         label="SƠ ĐỒ TASK VÀ LUỒNG THÔNG TIN (FreeRTOS)\n ", nodesep=0.3, ranksep=0.7, bgcolor=white, pad=0.3];
+  node [fontname="DejaVu Sans", fontsize=11];
+  edge [fontname="DejaVu Sans", fontsize=9];
+
+  // ISR
+  node [shape=box, style="filled", fillcolor="#fefcbf", color="#975a16"];
+  isr_exti [label="EXTI0 / EXTI15_10 ISR\n(cảm biến, nút)"];
+  isr_rx   [label="USART1 ISR\n(RXNE)"];
+  isr_dma  [label="DMA1_Channel4 ISR\n(TX xong)"];
+  isr_tim  [label="TIM2 ISR\n(timebase run-time stats)\nưu tiên > ngưỡng syscall,\nkhông gọi API"];
+
+  // Tasks
+  node [shape=box, style="rounded,filled", color="#2d3748"];
+  t_in   [label="InputTask\nprio 3", fillcolor="#c6f6d5"];
+  t_lamp [label="LampTask\nprio 2", fillcolor="#c6f6d5"];
+  t_disp [label="DisplayTask\nprio 1, chu kỳ 40 ms", fillcolor="#bee3f8"];
+  t_con  [label="ConsoleTask\nprio 2", fillcolor="#fed7e2"];
+  t_log  [label="LogTask (gatekeeper UART)\nprio 1", fillcolor="#bee3f8"];
+  t_mon  [label="MonitorTask\nprio 4, chu kỳ 1 s", fillcolor="#fed7e2"];
+  t_idle [label="Idle task (prio 0)\nvApplicationIdleHook()\nđếm + __WFI()", fillcolor="#e2e8f0"];
+  t_tmr  [label="Timer daemon (prio 3)\ntmrDebounce x3, tmrFade, tmrOff", fillcolor="#e2e8f0"];
+
+  // Objects
+  node [shape=cylinder, style="filled", fillcolor="#ffffff", color="#4a5568"];
+  q_ev   [label="qEvents\nqueue 10 x AppEvent_t"];
+  q_view [label="qLampView\nmailbox (overwrite/peek)"];
+  q_cpu  [label="qCpuStat\nmailbox (overwrite/peek)"];
+  q_log  [label="qLog\nqueue 16 x LogMsg_t"];
+  node [shape=hexagon, fillcolor="#faf5ff", color="#6b46c1"];
+  eg     [label="egSystem\nevent group\nbit READY"];
+  mtx    [label="mutex\nbảng thống kê CPU"];
+  sem    [label="binary semaphore\nTX DMA xong"];
+
+  isr_exti -> t_in  [label="task notification\n(eSetBits)"];
+  t_in -> t_tmr     [label="xTimerReset\n(chống nhiễu)", style=dashed];
+  t_tmr -> t_in     [label="notify: tín hiệu ổn định", style=dashed];
+  t_in -> q_ev      [label="DARK/LIGHT\nBTN_xxx"];
+  isr_rx -> t_con   [label="vTaskNotifyGiveFromISR\n(đủ 1 dòng lệnh)"];
+  t_con -> q_ev     [label="CMD_LAMP / CMD_SET"];
+  t_tmr -> q_ev     [label="FADE_TICK\nOFF_TIMEOUT"];
+  q_ev -> t_lamp;
+  t_lamp -> t_tmr   [label="start/stop tmrFade, tmrOff", style=dashed];
+  t_lamp -> q_view  [label="xQueueOverwrite"];
+  q_view -> t_disp  [label="xQueuePeek"];
+  q_view -> t_con   [label="xQueuePeek (lệnh status)"];
+  t_mon -> q_cpu    [label="xQueueOverwrite"];
+  q_cpu -> t_disp   [label="xQueuePeek"];
+  t_mon -> mtx      [label="ghi"];
+  mtx -> t_con      [label="đọc (lệnh cpu, stack)"];
+  t_idle -> t_mon   [label="biến đếm idle", style=dotted];
+  isr_tim -> t_mon  [label="bộ đếm 32 bit", style=dotted];
+  t_mon -> eg       [label="set READY\nsau hiệu chuẩn"];
+  eg_note [shape=note, style=filled, fillcolor="#faf5ff", color="#6b46c1", label="Mọi task ứng dụng (trừ MonitorTask)\nchờ bit READY trước khi chạy vòng lặp chính\n(xEventGroupWaitBits)"];
+  eg -> eg_note [style=dotted, arrowhead=none];
+  t_in -> q_log [style=dashed]; t_lamp -> q_log [style=dashed]; t_con -> q_log [style=dashed]; t_mon -> q_log [style=dashed];
+  q_log -> t_log;
+  t_log -> isr_dma  [label="DMA TX", style=dashed];
+  isr_dma -> sem    [label="xSemaphoreGiveFromISR"];
+  sem -> t_log      [label="xSemaphoreTake"];
+}

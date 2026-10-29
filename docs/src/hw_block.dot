@@ -1,0 +1,57 @@
+// Sơ đồ khối phần cứng
+digraph hw {
+  graph [rankdir=LR, fontname="DejaVu Sans", nodesep=0.35, ranksep=0.9, bgcolor=white, pad=0.3, newrank=true, splines=spline,
+         label="SƠ ĐỒ KHỐI PHẦN CỨNG", labelloc=t, fontsize=20];
+  node  [fontname="DejaVu Sans", fontsize=13, shape=box, style="rounded,filled", fillcolor="#ffffff", color="#2d3748", penwidth=1.5, margin="0.18,0.08"];
+  edge  [fontname="DejaVu Sans", fontsize=11, color="#2d3748", penwidth=1.4, arrowsize=0.8];
+
+  subgraph cluster_in { label="KHỐI ĐẦU VÀO"; fontsize=14; fontcolor="#975a16"; color="#d69e2e"; style="rounded,dashed";
+    ldr  [label="Cảm biến quang\n(quang trở + LM393)\nDO: 0/1", fillcolor="#fefcbf"];
+    bn   [label="Nút NEXT", fillcolor="#fefcbf"];
+    bo   [label="Nút OK", fillcolor="#fefcbf"];
+  }
+  subgraph cluster_pc { label="MÁY TÍNH"; fontsize=14; fontcolor="#4a5568"; color="#a0aec0"; style="rounded,dashed";
+    pc   [label="Máy tính\n(Hercules / Keil)", fillcolor="#edf2f7"];
+    ttl  [label="USB-TTL\n(CP2102 / CH340)", fillcolor="#edf2f7"];
+    stl  [label="ST-Link V2\n(nạp, gỡ lỗi)", fillcolor="#edf2f7"];
+  }
+  subgraph cluster_mcu { label="KHỐI XỬ LÝ: STM32F103C8 (Blue Pill)"; fontsize=14; fontcolor="#2b6cb0"; color="#2b6cb0"; style="rounded";
+    cpu  [label="Lõi Cortex-M3 72 MHz\nFreeRTOS (6 task)\nFlash 64 KB, RAM 20 KB", fillcolor="#bee3f8", fontsize=14];
+    gpio [label="GPIO + EXTI\nPA0, PB12, PB13", fillcolor="#e8f1fb"];
+    uart [label="USART1 + DMA1 kênh 4\nTX PA9, RX PA10", fillcolor="#e8f1fb"];
+    swd  [label="SWD\nPA13, PA14", fillcolor="#e8f1fb"];
+    spi  [label="SPI1\nPA5 SCK, PA7 MOSI, PA4 CS", fillcolor="#e8f1fb"];
+    i2c  [label="I2C1\nPB6 SCL, PB7 SDA", fillcolor="#e8f1fb"];
+    tim  [label="TIM2 (20 kHz)\nđo thời gian chạy task", fillcolor="#e8f1fb"];
+    led  [label="GPIO PC13", fillcolor="#e8f1fb"];
+    {rank=same; gpio; uart; swd}
+    {rank=same; spi; i2c; tim; led}
+    gpio -> cpu [style=invis]; uart -> cpu [style=invis]; swd -> cpu [style=invis];
+    cpu -> spi [style=invis]; cpu -> i2c [style=invis]; cpu -> tim [style=invis]; cpu -> led [style=invis];
+  }
+  subgraph cluster_out { label="KHỐI ĐẦU RA"; fontsize=14; fontcolor="#2f855a"; color="#38a169"; style="rounded,dashed";
+    mx   [label="Ma trận LED 8×8\nMAX7219", fillcolor="#c6f6d5"];
+    ol   [label="OLED 0.96\"\nSSD1306 128×64", fillcolor="#c6f6d5"];
+    lp   [label="LED PC13 trên bo\n(báo hệ thống chạy)", fillcolor="#c6f6d5"];
+  }
+  subgraph cluster_pw { label="NGUỒN"; fontsize=14; fontcolor="#c53030"; color="#e53e3e"; style="rounded,dashed";
+    p5   [label="5 V từ USB\n(USB-TTL hoặc micro USB)", fillcolor="#fff5f5"];
+    p33  [label="Ổn áp 3,3 V\ntrên Blue Pill", fillcolor="#fff5f5"];
+  }
+  ldr -> gpio [label="PA0 (EXTI0)"];
+  bn  -> gpio [label="PB12 (EXTI12)"];
+  bo  -> gpio [label="PB13 (EXTI13)"];
+  pc  -> ttl  [label="USB", dir=both];
+  ttl -> uart [label="TX↔RX, 115200", dir=both];
+  pc  -> stl  [label="USB"];
+  stl -> swd  [label="SWDIO, SWCLK"];
+  gpio -> cpu; uart -> cpu [dir=both]; swd -> cpu;
+  cpu -> spi; cpu -> i2c; cpu -> tim [dir=both]; cpu -> led;
+  spi -> mx  [label="DIN, CLK, CS"];
+  i2c -> ol  [label="SCL, SDA"];
+  led -> lp;
+  p5 -> p33 [color="#c53030"];
+  p5 -> mx  [color="#c53030", style=dashed, label="5 V", fontcolor="#c53030", constraint=false];
+  p33 -> cpu [color="#c53030", style=dashed, label="3,3 V", fontcolor="#c53030"];
+  {rank=same; ldr; bn; bo; pc; ttl; stl}
+}

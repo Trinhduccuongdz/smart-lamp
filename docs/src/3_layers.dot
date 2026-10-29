@@ -1,0 +1,50 @@
+// Kiến trúc phân tầng phần mềm: Application -> Middleware -> Driver -> Phần cứng
+digraph layers {
+  graph [rankdir=TB, fontname="DejaVu Sans", fontsize=20, labelloc=t, newrank=true,
+         label="KIẾN TRÚC PHÂN TẦNG PHẦN MỀM\n(màu = người phụ trách)\n ", nodesep=0.25, ranksep=0.55, bgcolor=white, pad=0.3];
+  node [fontname="DejaVu Sans", fontsize=11, shape=box, style="rounded,filled"];
+  edge [color="#718096", arrowsize=0.6];
+
+  subgraph cluster_legend {
+    label="Chú thích"; style="rounded"; color="#a0aec0"; fontsize=12;
+    l1 [label="Người 1: Đầu vào + điều khiển đèn", fillcolor="#c6f6d5"];
+    l2 [label="Người 2: Hiển thị + xuất dữ liệu", fillcolor="#bee3f8"];
+    l3 [label="Người 3: Giao tiếp lệnh + giám sát", fillcolor="#fed7e2"];
+    l0 [label="Dùng chung / thư viện ngoài", fillcolor="#e2e8f0"];
+  }
+
+  subgraph cluster_app {
+    label="TẦNG APPLICATION (app/) - logic chức năng, KHÔNG truy cập thanh ghi"; style="rounded,filled"; fillcolor="#f7fafc"; color="#2d3748"; fontsize=13;
+    a_main [label="main.c\napp_interface.c/.h", fillcolor="#e2e8f0"];
+    a_in   [label="input_task.c", fillcolor="#c6f6d5"];
+    a_lamp [label="lamp_task.c\nlamp_fsm.c\nmenu.c", fillcolor="#c6f6d5"];
+    a_disp [label="display_task.c\neffects.c\nlog_task.c", fillcolor="#bee3f8"];
+    a_con  [label="console_task.c", fillcolor="#fed7e2"];
+    a_mon  [label="monitor_task.c\nhooks.c", fillcolor="#fed7e2"];
+  }
+  subgraph cluster_mid {
+    label="TẦNG MIDDLEWARE (middleware/) - dịch vụ, thư viện thiết bị, hệ điều hành"; style="rounded,filled"; fillcolor="#f7fafc"; color="#2d3748"; fontsize=13;
+    m_rtos [label="FreeRTOS kernel V11.1.0\n(tasks, queue, timers,\nevent_groups, heap_4)", fillcolor="#e2e8f0"];
+    m_in   [label="button.c\nlight_sensor.c", fillcolor="#c6f6d5"];
+    m_dev  [label="max7219.c\nssd1306.c\nfont5x7.c\nconsole.c", fillcolor="#bee3f8"];
+    m_con  [label="xprintf.c", fillcolor="#fed7e2"];
+    m_mon  [label="cpu_monitor.c\nboard.c", fillcolor="#fed7e2"];
+  }
+  subgraph cluster_drv {
+    label="TẦNG DRIVER (drivers/) - khởi tạo và điều khiển ngoại vi bằng thư viện Standard Peripheral (SPL)"; style="rounded,filled"; fillcolor="#f7fafc"; color="#2d3748"; fontsize=13;
+    d_in  [label="gpio.c\nexti.c", fillcolor="#c6f6d5"];
+    d_dev [label="spi.c\ni2c.c\nuart.c (+DMA)", fillcolor="#bee3f8"];
+    d_com [label="clock.c, nvic.c\ntimer.c", fillcolor="#fed7e2"];
+  }
+  hw [label="THƯ VIỆN HÃNG + PHẦN CỨNG: STM32F10x StdPeriph Lib V3.5.0, CMSIS (stm32f10x.h, core_cm3.h), startup Keil -> STM32F103C8", fillcolor="#edf2f7", shape=box, style="filled"];
+
+  { rank=same; a_main; a_in; a_lamp; a_disp; a_con; a_mon; }
+  { rank=same; m_rtos; m_in; m_dev; m_con; m_mon; }
+  { rank=same; d_in; d_dev; d_com; }
+  l0 -> a_main [style=invis];
+
+  a_in -> m_in; a_lamp -> m_rtos; a_disp -> m_dev; a_con -> m_dev; a_con -> m_con; a_mon -> m_mon;
+  a_main -> m_rtos; a_main -> m_mon;
+  m_in -> d_in; m_dev -> d_dev; m_dev -> d_in; m_mon -> d_com; m_mon -> d_in;
+  d_in -> hw; d_dev -> hw; d_com -> hw; m_rtos -> hw [label=" port ARM_CM3", fontname="DejaVu Sans", fontsize=9];
+}
