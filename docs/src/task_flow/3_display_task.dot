@@ -1,0 +1,40 @@
+digraph g {
+  graph [rankdir=TB, fontname="DejaVu Sans", nodesep=0.25, ranksep=0.28, bgcolor=white, pad=0.25, newrank=true];
+  node  [fontname="DejaVu Sans", fontsize=16, shape=box, style="rounded,filled", fillcolor="#e8f1fb", color="#2b6cb0", penwidth=1.5, margin="0.16,0.07"];
+  edge  [fontname="DejaVu Sans", fontsize=14, color="#2d3748", penwidth=1.4, arrowsize=0.8];
+
+s [label="DisplayTask (ưu tiên 1)", shape=oval, fillcolor="#2b6cb0", fontcolor=white, color="#2b6cb0", group=t];
+r [label="Chờ bit READY", fillcolor="#edf2f7", color="#4a5568", group=t];
+i [label="Khởi tạo MAX7219 (SPI1)\nvà OLED (I2C1)", group=t];
+o0 [label="Đầu ra: log OLED\nOK / lỗi → qLog", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05", group=t];
+ca [shape=circle, style=filled, fillcolor=white, color="#2d3748", fontsize=13, width=0.38, fixedsize=true, label="A"];
+in1 [label="Đầu vào: đọc qLampView\n(xQueuePeek)", shape=box, style=filled, fillcolor="#fefcbf", color="#975a16", margin="0.1,0.05", group=t];
+d1 [label="Mức sáng\n= 0?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.03,0.02", group=t];
+sd [label="Tắt ma trận\n(shutdown)"];
+fr [label="Tính khung hình theo\nhiệu ứng và độ sáng", group=t];
+d2 [label="Khung / độ\nsáng đổi?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.03,0.02", group=t];
+spi [label="Đầu ra: khung hình\n→ ma trận LED\n(SPI + DMA)", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05"];
+d3 [label="Đủ 5 khung\n(200 ms)?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.03,0.02", group=t];
+in2 [label="Đầu vào: đọc qCpuStat\n(xQueuePeek)", shape=box, style=filled, fillcolor="#fefcbf", color="#975a16", margin="0.1,0.05", group=t];
+d4 [label="Menu\nđang mở?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.03,0.02", group=t];
+pm [label="Vẽ trang\nmenu cài đặt"];
+ps [label="Vẽ trang trạng thái\n(đèn, ánh sáng, CPU)"];
+oled [label="Đầu ra: nội dung\n→ OLED (I2C)", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05", group=t];
+wt [label="frame + 1, chờ hết\nchu kỳ 40 ms\n(xTaskDelayUntil)", fillcolor="#edf2f7", color="#4a5568", group=t];
+ce [shape=circle, style=filled, fillcolor=white, color="#2d3748", fontsize=13, width=0.38, fixedsize=true, label="A", group=t];
+s -> r -> i -> o0 -> in1 -> d1;
+ca -> in1; {rank=same; ca; in1}
+d1 -> fr [label=" Không"]; d1 -> sd [label=" Có"];
+fr -> d2; d2 -> spi [label=" Có"];
+d2 -> d3 [label=" Không"]; spi -> d3; sd -> d3;
+d3 -> in2 [label=" Có"]; d3 -> wt [label=" Không"];
+in2 -> d4; d4 -> ps [label=" Không"]; d4 -> pm [label=" Có"];
+pm -> oled; ps -> oled; oled -> wt -> ce;
+{rank=same; sd; fr}
+
+o0 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=2.72, height=0.67];
+in1 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=3.91, height=0.67];
+spi [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=3.06, height=0.95];
+in2 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=3.59, height=0.67];
+oled [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=2.70, height=0.67];
+}

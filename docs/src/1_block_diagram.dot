@@ -1,0 +1,49 @@
+// Sơ đồ khối hệ thống: đầu vào -> khối xử lý -> đầu ra
+digraph block {
+  graph [rankdir=LR, fontname="DejaVu Sans", fontsize=20, labelloc=t,
+         label="SƠ ĐỒ KHỐI HỆ THỐNG ĐÈN THÔNG MINH (FreeRTOS - STM32F103C8)\n ", nodesep=0.35, ranksep=0.9, bgcolor=white, pad=0.3];
+  node  [fontname="DejaVu Sans", fontsize=12, shape=box, style="rounded,filled", fillcolor="#ffffff"];
+  edge  [fontname="DejaVu Sans", fontsize=10];
+
+  subgraph cluster_in {
+    label="ĐẦU VÀO"; style="rounded,filled"; fillcolor="#e8f1fb"; color="#2b6cb0"; fontsize=14;
+    sensor [label="Cảm biến quang trở\n(module LM393, chân DO)\nSáng / Tối"];
+    btn1   [label="Nút NEXT\n(chọn mục / đổi giá trị)"];
+    btn2   [label="Nút OK\n(bật-tắt đèn / xác nhận)"];
+    pcin   [label="Máy tính (Terminal)\ngửi lệnh qua USB-TTL"];
+  }
+
+  subgraph cluster_mcu {
+    label="KHỐI XỬ LÝ: STM32F103C8 (Blue Pill) + FreeRTOS"; style="rounded,filled"; fillcolor="#fdf6e3"; color="#b7791f"; fontsize=14;
+    input   [label="Khối đầu vào\nInputTask\n(EXTI + chống nhiễu)", fillcolor="#c6f6d5"];
+    console [label="Khối giao tiếp\nConsoleTask\n(phân tích lệnh)", fillcolor="#fed7e2"];
+    lamp    [label="Khối điều khiển đèn\nLampTask\n(máy trạng thái + menu)", fillcolor="#c6f6d5"];
+    display [label="Khối hiển thị\nDisplayTask\n(hiệu ứng LED + OLED)", fillcolor="#bee3f8"];
+    logt    [label="Khối xuất log\nLogTask\n(UART TX qua DMA)", fillcolor="#bee3f8"];
+    mon     [label="Khối giám sát\nMonitorTask\n(tải CPU, stack)", fillcolor="#fed7e2"];
+    input -> lamp   [label="qEvents"];
+    console -> lamp [label="qEvents"];
+    lamp -> display [label="qLampView"];
+    mon -> display  [label="qCpuStat"];
+    lamp -> logt    [label="qLog", style=dashed];
+    console -> logt [label="qLog", style=dashed];
+    mon -> logt     [label="qLog", style=dashed];
+  }
+
+  subgraph cluster_out {
+    label="ĐẦU RA"; style="rounded,filled"; fillcolor="#e6fffa"; color="#2c7a7b"; fontsize=14;
+    matrix [label="Ma trận LED 8x8\n(MAX7219)\nĐèn + hiệu ứng"];
+    oled   [label="OLED SSD1306 128x64\nTrạng thái / Menu / %CPU"];
+    pcout  [label="Máy tính (Terminal)\nlog, kết quả lệnh, %CPU"];
+    led    [label="LED PC13\nnháy báo hệ thống sống"];
+  }
+
+  sensor -> input [label="GPIO PA0 / EXTI0"];
+  btn1   -> input [label="PB12 / EXTI12"];
+  btn2   -> input [label="PB13 / EXTI13"];
+  pcin   -> console [label="USART1 RX (PA10)\nngắt RXNE"];
+  display -> matrix [label="SPI1 (PA5, PA7, CS=PA4)"];
+  display -> oled   [label="I2C1 (PB6, PB7)"];
+  logt -> pcout     [label="USART1 TX (PA9)\nDMA1 kênh 4"];
+  mon -> led        [label="GPIO PC13"];
+}

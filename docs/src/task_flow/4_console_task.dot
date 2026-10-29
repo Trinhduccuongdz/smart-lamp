@@ -1,0 +1,40 @@
+digraph g {
+  graph [rankdir=TB, fontname="DejaVu Sans", nodesep=0.25, ranksep=0.28, bgcolor=white, pad=0.25, newrank=true];
+  node  [fontname="DejaVu Sans", fontsize=16, shape=box, style="rounded,filled", fillcolor="#e8f1fb", color="#2b6cb0", penwidth=1.5, margin="0.16,0.07"];
+  edge  [fontname="DejaVu Sans", fontsize=14, color="#2d3748", penwidth=1.4, arrowsize=0.8];
+
+s [label="ConsoleTask (ưu tiên 2)", shape=oval, fillcolor="#2b6cb0", fontcolor=white, color="#2b6cb0", group=t];
+r [label="Chờ bit READY", fillcolor="#edf2f7", color="#4a5568", group=t];
+o0 [label="Đầu ra: lời chào → qLog", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05", group=t];
+ca [shape=circle, style=filled, fillcolor=white, color="#2d3748", fontsize=13, width=0.38, fixedsize=true, label="A"];
+w [label="Chờ notification từ ISR\nUSART (ulTaskNotifyTake)", fillcolor="#edf2f7", color="#4a5568", group=t];
+in1 [label="Đầu vào: dòng lệnh từ\nmáy tính (UART RX)", shape=box, style=filled, fillcolor="#fefcbf", color="#975a16", margin="0.1,0.05", group=t];
+cb [shape=circle, style=filled, fillcolor=white, color="#2d3748", fontsize=13, width=0.38, fixedsize=true, label="A", label="B"];
+d1 [label="Còn dòng\ntrong bộ đệm?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.03,0.02", group=t];
+sp [label="Tách tên lệnh\nvà tham số", group=t];
+d2 [label="Loại lệnh?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.03,0.02", group=t];
+o1 [label="Đầu ra:\nEV_CMD_xxx\n→ qEvents", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05"];
+rd [label="Đọc trạng thái\nđèn / CPU"];
+o2 [label="Đầu ra: kết quả\n→ qLog", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05"];
+cf [label="Bật / tắt\nsleep, log 1"];
+o3 [label="Đầu ra:\nbáo lỗi\n→ qLog", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05"];
+ce [shape=circle, style=filled, fillcolor=white, color="#2d3748", fontsize=13, width=0.38, fixedsize=true, label="A", group=t];
+cb2 [shape=circle, style=filled, fillcolor=white, color="#2d3748", fontsize=13, width=0.38, fixedsize=true, label="A", label="B"];
+s -> r -> o0 -> w -> in1 -> d1;
+ca -> w; {rank=same; ca; w}
+cb -> d1; {rank=same; cb; d1}
+d1 -> sp [label=" Có"]; d1 -> ce [label=" Không"];
+sp -> d2;
+d2 -> o1 [label=" điều\n khiển"];
+d2 -> rd [label=" xem"]; rd -> o2;
+d2 -> cf [label=" cấu\n hình"];
+d2 -> o3 [label=" sai"];
+o1 -> cb2; o2 -> cb2; cf -> cb2; o3 -> cb2;
+{rank=same; o1; rd; cf; o3} {rank=same; ce; cb2}
+
+o0 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=3.68, height=0.55];
+in1 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=3.48, height=0.67];
+o1 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=2.10, height=0.95];
+o2 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=2.51, height=0.67];
+o3 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=1.33, height=0.95];
+}

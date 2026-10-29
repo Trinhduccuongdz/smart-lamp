@@ -1,0 +1,42 @@
+digraph g {
+  graph [rankdir=TB, fontname="DejaVu Sans", nodesep=0.25, ranksep=0.28, bgcolor=white, pad=0.25, newrank=true];
+  node  [fontname="DejaVu Sans", fontsize=16, shape=box, style="rounded,filled", fillcolor="#e8f1fb", color="#2b6cb0", penwidth=1.5, margin="0.16,0.07"];
+  edge  [fontname="DejaVu Sans", fontsize=14, color="#2d3748", penwidth=1.4, arrowsize=0.8];
+
+s [label="InputTask (ưu tiên 3)", shape=oval, fillcolor="#2b6cb0", fontcolor=white, color="#2b6cb0", group=t];
+r [label="Chờ bit READY", fillcolor="#edf2f7", color="#4a5568", group=t];
+i [label="Khởi tạo cảm biến, 2 nút\n(ngắt EXTI 2 cạnh)", group=t];
+o0 [label="Đầu ra: trạng thái ban đầu\nEV_SENSOR_DARK/LIGHT\n→ qEvents", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05", group=t];
+ca [shape=circle, style=filled, fillcolor=white, color="#2d3748", fontsize=13, width=0.38, fixedsize=true, label="A"];
+w [label="Chờ task notification\n(xTaskNotifyWait)", fillcolor="#edf2f7", color="#4a5568", group=t];
+in1 [label="Đầu vào: bit CẠNH từ ISR,\nbit ỔN ĐỊNH từ timer\nchống nhiễu", shape=box, style=filled, fillcolor="#fefcbf", color="#975a16", margin="0.1,0.05", group=t];
+rt [label="Có bit CẠNH thì reset timer\nchống nhiễu (1 s / 30 ms)", group=t];
+d2 [label="Có bit\nổn định?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.03,0.02", group=t];
+d3 [label="Nguồn là\ncảm biến?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.03,0.02", group=t];
+rs [label="Đọc mức\ncảm biến"];
+d4 [label="Khác trạng\nthái cũ?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.03,0.02"];
+o1 [label="Đầu ra:\nEV_SENSOR_DARK\nhoặc _LIGHT → qEvents", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05"];
+rb [label="Đọc mức nút"];
+d5 [label="Nhấn\nhay nhả?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.03,0.02"];
+pt [label="Lưu thời\nđiểm nhấn"];
+cls [label="Phân loại theo thời\ngian giữ: ≥ 0,8 s là\nGIỮ, ngược lại NGẮN"];
+o2 [label="Đầu ra: EV_BTN_xxx\nhoặc _HOLD → qEvents", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05"];
+ce [shape=circle, style=filled, fillcolor=white, color="#2d3748", fontsize=13, width=0.38, fixedsize=true, label="A", group=t];
+s -> r -> i -> o0 -> w -> in1 -> rt -> d2;
+ca -> w; {rank=same; ca; w}
+d2 -> d3 [label=" Có"];
+d2 -> ce [label=" Không"];
+d3 -> rs [label=" Có"]; rs -> d4;
+d4 -> o1 [label=" Có"];
+d4 -> ce [label=" Không\n (nhiễu)"];
+d3 -> rb [label=" Nút"]; rb -> d5;
+d5 -> pt [label=" Nhấn"];
+d5 -> cls [label=" Nhả"]; cls -> o2;
+o1 -> ce; pt -> ce; o2 -> ce;
+{rank=same; rs; rb}
+
+o0 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=4.11, height=0.95];
+in1 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=3.98, height=0.95];
+o1 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=3.63, height=0.95];
+o2 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=3.57, height=0.67];
+}
