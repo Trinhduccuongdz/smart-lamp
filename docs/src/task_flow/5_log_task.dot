@@ -1,0 +1,20 @@
+digraph g {
+  graph [rankdir=TB, fontname="DejaVu Sans", nodesep=0.25, ranksep=0.28, bgcolor=white, pad=0.25, newrank=true];
+  node  [fontname="DejaVu Sans", fontsize=16, shape=box, style="rounded,filled", fillcolor="#e8f1fb", color="#2b6cb0", penwidth=1.5, margin="0.16,0.07"];
+  edge  [fontname="DejaVu Sans", fontsize=14, color="#2d3748", penwidth=1.4, arrowsize=0.8];
+
+s [label="LogTask (ưu tiên 1)", shape=oval, fillcolor="#2b6cb0", fontcolor=white, color="#2b6cb0", group=t];
+r [label="Chờ bit READY", fillcolor="#edf2f7", color="#4a5568", group=t];
+ca [shape=circle, style=filled, fillcolor=white, color="#2d3748", fontsize=13, width=0.38, fixedsize=true, label="A"];
+w [label="Chờ chuỗi trong qLog\n(xQueueReceive)", fillcolor="#edf2f7", color="#4a5568", group=t];
+in1 [label="Đầu vào: chuỗi log\ntừ các task (log_printf)", shape=box, style=filled, fillcolor="#fefcbf", color="#975a16", margin="0.1,0.05", group=t];
+dma [label="Gửi chuỗi qua\nUSART1 TX bằng DMA", group=t];
+sem [label="Chờ binary semaphore\n(ngắt DMA báo xong)", fillcolor="#edf2f7", color="#4a5568", group=t];
+o1 [label="Đầu ra: chuỗi hiện\ntrên terminal máy tính", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05", group=t];
+ce [shape=circle, style=filled, fillcolor=white, color="#2d3748", fontsize=13, width=0.38, fixedsize=true, label="A", group=t];
+s -> r -> w -> in1 -> dma -> sem -> o1 -> ce;
+ca -> w; {rank=same; ca; w}
+
+in1 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=3.50, height=0.67];
+o1 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=3.48, height=0.67];
+}

@@ -1,0 +1,44 @@
+// Lưu đồ thuật toán: khởi động hệ thống + vòng xử lý tự động của đèn
+digraph flow {
+  graph [rankdir=TB, fontname="DejaVu Sans", nodesep=0.45, ranksep=0.32, bgcolor=white, pad=0.25, newrank=true, compound=true];
+  node  [fontname="DejaVu Sans", fontsize=15, shape=box, style="rounded,filled", fillcolor="#e8f1fb", color="#2b6cb0", penwidth=1.6, margin="0.18,0.08"];
+  edge  [fontname="DejaVu Sans", fontsize=13, color="#2d3748", penwidth=1.5, arrowsize=0.8];
+
+  subgraph cluster_init {
+    label="① KHỞI ĐỘNG"; fontsize=17; fontcolor="#2b6cb0"; color="#cbd5e0"; style="rounded,dashed";
+    s   [label="BẮT ĐẦU", shape=oval, fillcolor="#2b6cb0", fontcolor=white, color="#2b6cb0"];
+    i1  [label="Khởi tạo clock 72 MHz,\nGPIO, NVIC"];
+    i2  [label="Tạo queue, mailbox,\nevent group, mutex"];
+    i3  [label="Tạo 6 task\nvTaskStartScheduler()"];
+    i4  [label="Hiệu chuẩn CPU 1 s\n(đo idle_max)"];
+    i5  [label="Đặt bit READY\n→ mọi task chạy", fillcolor="#c6f6d5", color="#2f855a"];
+    s -> i1 -> i2 -> i3 -> i4 -> i5;
+  }
+
+  subgraph cluster_loop {
+    label="② VÒNG XỬ LÝ TỰ ĐỘNG"; fontsize=17; fontcolor="#2f855a"; color="#cbd5e0"; style="rounded,dashed";
+    w   [label="Chờ ngắt EXTI\n(cảm biến đổi mức)", fillcolor="#fefcbf", color="#975a16"];
+    d1  [label="Ổn định\n≥ 1 giây?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.05,0.02"];
+    d2  [label="Trời tối?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.05,0.02"];
+    d3  [label="Chế độ\ntự động?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.05,0.02"];
+    on  [label="SÁNG DẦN\n+1 mức mỗi 100 ms\n→ ON (mức max)", fillcolor="#c6f6d5", color="#2f855a"];
+    off [label="TẮT DẦN\n−1 mức mỗi 100 ms\n→ OFF", fillcolor="#e2e8f0", color="#4a5568"];
+    t   [label="Hẹn giờ ≠ 0:\nhết giờ thì tắt dần", fillcolor="#fefcbf", color="#975a16"];
+    keep [label="Giữ nguyên\ntrạng thái đèn", fillcolor="#f7fafc", color="#718096"];
+    sh  [label="Cập nhật mailbox → hiển thị\nma trận LED + OLED, log UART", fillcolor="#bee3f8", color="#2b6cb0"];
+    w -> d1;
+    d1 -> w  [label=" Không\n (nhiễu)", constraint=false];
+    d1 -> d2 [label=" Có"];
+    d2 -> d3 [label=" Có"];
+    d2 -> off [label=" Không"];
+    d3 -> on [label=" Có"];
+    d3 -> keep [label=" Không"];
+    keep -> sh;
+    {rank=same; off; keep; on;}
+    on -> t -> sh;
+    off -> sh;
+    sh:e -> w:e [constraint=false, label="  lặp lại"];
+  }
+  i5 -> w [ltail=cluster_init, lhead=cluster_loop, style=dashed];
+  {rank=same; i1; w;}
+}

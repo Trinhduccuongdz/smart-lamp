@@ -1,0 +1,37 @@
+digraph g {
+  graph [rankdir=TB, fontname="DejaVu Sans", nodesep=0.25, ranksep=0.28, bgcolor=white, pad=0.25, newrank=true];
+  node  [fontname="DejaVu Sans", fontsize=16, shape=box, style="rounded,filled", fillcolor="#e8f1fb", color="#2b6cb0", penwidth=1.5, margin="0.16,0.07"];
+  edge  [fontname="DejaVu Sans", fontsize=14, color="#2d3748", penwidth=1.4, arrowsize=0.8];
+
+s [label="LampTask (ưu tiên 2)", shape=oval, fillcolor="#2b6cb0", fontcolor=white, color="#2b6cb0", group=t];
+r [label="Chờ bit READY", fillcolor="#edf2f7", color="#4a5568", group=t];
+p0 [label="Công bố trạng thái\nban đầu → qLampView", group=t];
+ca [shape=circle, style=filled, fillcolor=white, color="#2d3748", fontsize=13, width=0.38, fixedsize=true, label="A"];
+w [label="Chờ sự kiện trong qEvents\n(xQueueReceive)", fillcolor="#edf2f7", color="#4a5568", group=t];
+in1 [label="Đầu vào: sự kiện từ InputTask,\nConsoleTask, timer sáng dần\n(100 ms), timer hẹn tắt", shape=box, style=filled, fillcolor="#fefcbf", color="#975a16", margin="0.1,0.05", group=t];
+d1 [label="Loại sự\nkiện?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.03,0.02", group=t];
+m [label="Máy trạng thái menu\n(CLOSED / NAV / EDIT)"];
+d2 [label="Lưu cài đặt\nhoặc bật/tắt?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.03,0.02"];
+set [label="Áp dụng cài đặt\n(mode, độ sáng,\nhẹn giờ, auto)"];
+fsm [label="Máy trạng thái đèn\nOFF / FADE_IN /\nON / FADE_OUT", group=t];
+act [label="Chạy / dừng timer sáng dần,\nchạy / dừng timer hẹn tắt", group=t];
+d3 [label="Trạng thái\nđèn đổi?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.03,0.02", group=t];
+lg [label="Đầu ra: log\n\"[LAMP] A -> B\" → qLog", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05"];
+o1 [label="Đầu ra: trạng thái, mức sáng,\ncài đặt, menu → qLampView", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05", group=t];
+ce [shape=circle, style=filled, fillcolor=white, color="#2d3748", fontsize=13, width=0.38, fixedsize=true, label="A", group=t];
+s -> r -> p0 -> w -> in1 -> d1;
+ca -> w; {rank=same; ca; w}
+d1 -> fsm [label=" Cảm biến, nhịp sáng dần,\n hết giờ, lệnh on/off"];
+d1 -> m [label=" Nút nhấn"];
+d1 -> set [label=" Lệnh cài đặt"];
+m -> d2; d2 -> fsm [label=" Có"]; d2 -> o1 [label=" Không"];
+set -> fsm;
+fsm -> act -> d3;
+d3 -> lg [label=" Có"]; lg -> o1;
+d3 -> o1 [label=" Không"];
+o1 -> ce;
+
+in1 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=4.60, height=0.95];
+lg [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=3.68, height=0.67];
+o1 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=4.53, height=0.67];
+}

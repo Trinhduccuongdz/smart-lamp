@@ -1,0 +1,31 @@
+digraph g {
+  graph [rankdir=TB, fontname="DejaVu Sans", nodesep=0.25, ranksep=0.28, bgcolor=white, pad=0.25, newrank=true];
+  node  [fontname="DejaVu Sans", fontsize=16, shape=box, style="rounded,filled", fillcolor="#e8f1fb", color="#2b6cb0", penwidth=1.5, margin="0.16,0.07"];
+  edge  [fontname="DejaVu Sans", fontsize=14, color="#2d3748", penwidth=1.4, arrowsize=0.8];
+
+s [label="MonitorTask (ưu tiên 4)", shape=oval, fillcolor="#2b6cb0", fontcolor=white, color="#2b6cb0", group=t];
+c1 [label="Bắt đầu hiệu chuẩn:\nxóa bộ đếm idle", group=t];
+c2 [label="Ngủ 1 s (task khác chờ\nREADY → chỉ Idle chạy)", fillcolor="#edf2f7", color="#4a5568", group=t];
+c3 [label="Kết thúc hiệu chuẩn:\nidle_max (lần/s)", group=t];
+o0 [label="Đầu ra: log idle_max\n→ qLog, đặt bit READY", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05", group=t];
+ca [shape=circle, style=filled, fillcolor=white, color="#2d3748", fontsize=13, width=0.38, fixedsize=true, label="A"];
+w [label="Chờ hết chu kỳ 1 s\n(xTaskDelayUntil)", fillcolor="#edf2f7", color="#4a5568", group=t];
+in1 [label="Đầu vào: bộ đếm idle hook,\nthời gian chạy từng task\n(TIM2)", shape=box, style=filled, fillcolor="#fefcbf", color="#975a16", margin="0.1,0.05", group=t];
+calc [label="Tính tải CPU 2 phương pháp,\n% CPU, stack trống từng task", group=t];
+o1 [label="Đầu ra: thống kê CPU\n→ qCpuStat", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05", group=t];
+d1 [label="Đang bật\nlog 1?", shape=diamond, fillcolor="#fff5f5", color="#c53030", margin="0.03,0.02", group=t];
+o2 [label="Đầu ra: dòng CSV\n→ qLog", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05"];
+led [label="Đầu ra: đảo LED PC13\n(báo hệ thống còn chạy)", shape=box, style=filled, fillcolor="#c6f6d5", color="#2f855a", margin="0.1,0.05", group=t];
+ce [shape=circle, style=filled, fillcolor=white, color="#2d3748", fontsize=13, width=0.38, fixedsize=true, label="A", group=t];
+s -> c1 -> c2 -> c3 -> o0 -> w -> in1 -> calc -> o1 -> d1;
+ca -> w; {rank=same; ca; w}
+d1 -> o2 [label=" Có"]; o2 -> led;
+d1 -> led [label=" Không"];
+led -> ce;
+
+o0 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=3.47, height=0.67];
+in1 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=4.23, height=0.95];
+o1 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=3.36, height=0.67];
+o2 [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=2.83, height=0.67];
+led [shape=polygon, sides=4, skew=0.22, fixedsize=true, width=3.79, height=0.67];
+}

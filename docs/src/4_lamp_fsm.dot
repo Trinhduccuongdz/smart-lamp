@@ -1,0 +1,25 @@
+// Máy trạng thái của đèn (lamp_fsm.c) - mục 6: State machine, event-driven firmware
+digraph fsm {
+  graph [rankdir=LR, fontname="DejaVu Sans", fontsize=20, labelloc=t,
+         label="MÁY TRẠNG THÁI ĐÈN (lamp_fsm.c)\nauto = chế độ tự động theo cảm biến; level 0..16 (0 = tắt)\n ", bgcolor=white, pad=0.3, nodesep=0.6, ranksep=1.2];
+  node [fontname="DejaVu Sans", fontsize=13, shape=circle, style=filled, fillcolor="#bee3f8", width=1.5, fixedsize=true];
+  edge [fontname="DejaVu Sans", fontsize=10];
+
+  start [shape=point, width=0.15, fillcolor=black];
+  OFF      [label="OFF\nlevel = 0", fillcolor="#e2e8f0"];
+  FADE_IN  [label="FADE_IN\nsáng dần"];
+  ON       [label="ON\nlevel = max", fillcolor="#fefcbf"];
+  FADE_OUT [label="FADE_OUT\ntối dần"];
+
+  start -> OFF;
+  OFF -> FADE_IN      [label="DARK & auto\nhoặc ON_REQ / TOGGLE\n[start tmrFade]"];
+  FADE_IN -> FADE_IN  [label="FADE_TICK & level < max\n/ level++"];
+  FADE_IN -> ON       [label="FADE_TICK & level >= max\n[stop tmrFade,\nstart tmrOff nếu timer > 0]"];
+  FADE_IN -> FADE_OUT [label="LIGHT & auto\nhoặc OFF_REQ / TOGGLE"];
+  ON -> FADE_OUT      [label="LIGHT & auto\nhoặc OFF_REQ / TOGGLE\nhoặc OFF_TIMEOUT\n[stop tmrOff, start tmrFade]"];
+  FADE_OUT -> FADE_OUT [label="FADE_TICK & level > 0\n/ level--"];
+  FADE_OUT -> OFF     [label="FADE_TICK & level == 0\n[stop tmrFade]"];
+  FADE_OUT -> FADE_IN [label="DARK & auto\nhoặc ON_REQ / TOGGLE"];
+  ON -> FADE_IN       [label="SETTINGS: max tăng\n[start tmrFade]", style=dashed];
+  ON -> ON            [label="SETTINGS: max giảm\n/ level = max", style=dashed];
+}
